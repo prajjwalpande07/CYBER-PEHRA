@@ -1,773 +1,436 @@
-# 🛡️ Cyber Phera — Predictive Cybercrime Intelligence System
+# 🛡️ CYBER PEHRA
 
-> **Predicting where cybercrime money will be withdrawn before it happens.**
+### Predictive Cybercrime Intelligence System
 
-## 📌 Overview
+> **From helping victims after cybercrime happens to helping authorities act before the next incident.**
 
-**Cyber Phera** is a predictive cybersecurity and financial-crime intelligence platform designed to help **Law Enforcement Agencies (LEAs), banks, financial institutions, and I4C** proactively identify locations where cybercrime funds are likely to be withdrawn.
-
-Instead of waiting for a cybercrime complaint to be investigated after money has already been withdrawn, Cyber Phera uses **AI/ML, geospatial analysis, transaction patterns, graph analytics, and real-time alerts** to forecast potential cash-withdrawal hotspots in advance.
-
-The system transforms cybercrime response from a **reactive approach into a proactive, data-driven approach**.
+CYBER PEHRA is an AI-powered cybercrime intelligence platform designed to help law enforcement agencies and financial institutions identify high-risk locations and potential cybercrime fund withdrawal patterns.
 
 ---
 
-## 🚨 Problem Statement
+## 🚨 Problem
 
-The National Cybercrime Reporting Portal (NCRP) receives thousands of cybercrime complaints every day. In financial cyber fraud cases, stolen money can move through multiple **mule accounts** and reach ATMs or bank branches before investigators can intervene.
+After a cybercrime complaint is registered, authorities need to quickly understand:
 
-The official problem statement calls for a predictive analytics framework that can **forecast likely cash-withdrawal locations in advance and generate actionable intelligence for timely cybercrime intervention**.
+- Where the stolen money may be withdrawn
+- Which ATM or bank location may be at risk
+- Which transactions look suspicious
+- How different accounts and transactions may be connected
+- Where preventive action should be taken
 
-### Current Challenges
-
-* Cybercrime response is largely reactive.
-* Fraud money can move through multiple mule accounts.
-* Cash may be withdrawn before intervention.
-* LEAs and financial institutions need faster intelligence sharing.
-* Different jurisdictions can operate with limited visibility across cases.
-* Increasing complaint volumes make manual analysis difficult.
+Traditional investigation methods can take time. CYBER PEHRA aims to provide **predictive intelligence and risk-based insights** to support faster action.
 
 ---
 
-# 💡 Our Solution — Cyber Phera
+# 💡 Story Behind CYBER PEHRA
 
-Cyber Phera combines historical cybercrime data, transaction-flow information, withdrawal-location data, and geospatial information to identify patterns and predict potential withdrawal hotspots.
+CYBER PEHRA did not start as an SIH project.
 
-### Core Concept
+The idea started from a real cyber-fraud incident involving an elderly woman.
+
+My mother works at a bank, and an elderly woman once approached the bank after money was deducted from her account. She was confused and did not understand how the fraud happened or what she should do next.
+
+She was told that the transaction had happened using an OTP, but she still did not understand how the fraud was carried out.
+
+She then approached the police and was directed to the cybercrime office to register a complaint.
+
+Even after registering the complaint, she had questions:
+
+- What happens next?
+- When will the money be recovered?
+- How can she track the complaint?
+- Who will investigate the case?
+
+This made us think:
+
+> **Can technology help a cybercrime victim understand and track the process?**
+
+That was the beginning of CYBER PEHRA.
+
+---
+
+# 🔄 Evolution of the Idea
+
+### Initial Idea
+
+```text
+AI Guidance
+      ↓
+Complaint Assistance
+      ↓
+Complaint Tracking
+      ↓
+Victim Support
+```
+The project initially focused on helping cybercrime victims.
+
+Later, while participating in different competitions and hackathons, we understood that solving the problem only from the victim side was not enough.
+
+Authorities also need better intelligence to act quickly.
+
+So the project evolved into:
+```text
+USER-BASED
+     ↓
+ADMIN-BASED
+     ↓
+USER + ADMIN
+```
+Our long-term vision is to connect both sides on a single platform.
+
+---
+# 🏆 Our Journey
+CYBER PEHRA evolved through multiple competitions and learning experiences.
+
+### MGM College of Engineering
+
+Our first idea pitch was presented at MGM College of Engineering.
+Although we did not receive the recognition we expected, we continued improving the idea.
+
+### P. R. Pote College Hackathon
+
+We participated in a hackathon where 800+ teams submitted PPTs.
+
+Our PPT was ranked #1 at the submission stage.
+
+### SGGS College Hackathon
+
+We participated again and did not win, but gained valuable experience in:
+- Problem understanding
+- Solution design
+- Technical implementation
+- Presentation
+- Practical project development
+  
+### GDG Hackathon
+
+At the GDG Hackathon held at MGM College of Engineering, Nanded, our team cleared the rounds and won the hackathon.
+
+This was an important milestone for CYBER PEHRA.
+
+### Smart India Hackathon
+
+Later, we explored Smart India Hackathon problem statements and found a problem related to cybercrime investigation and law enforcement.
+
+This changed the direction of the project.
+
+Instead of only helping victims, CYBER PEHRA evolved to help authorities predict, identify and respond to potential cybercrime fund withdrawal locations.
+
+---
+# 🛡️ CYBER PEHRA for Law Enforcement
+The current administrative concept follows:
 
 ```text
 Cybercrime Complaint
         ↓
-Transaction Analysis
+Data Analysis
         ↓
-Mule Network Detection
+Predictive Analysis
         ↓
-Spatio-Temporal Risk Analysis
+Risk Scoring
         ↓
-Hotspot Prediction
+GIS Risk Hotspots
         ↓
-Risk Heatmap
-        ↓
-Real-Time Alert
-        ↓
-LEA / Bank Action
-        ↓
-Officer Feedback
-        ↓
-Model Retraining
-```
-
-The system therefore creates a **closed-loop intelligence cycle**:
-
-**Prediction → Action → Outcome → Learning → Improved Prediction**
-
----
-
-# 🎯 Objectives
-
-* Predict potential cybercrime cash-withdrawal locations.
-* Identify high-risk ATM and bank-branch clusters.
-* Detect relationships between mule accounts and transactions.
-* Provide real-time actionable intelligence.
-* Help LEAs respond during the critical early period after a fraud.
-* Enable banks to identify and respond to suspicious activity faster.
-* Improve coordination across jurisdictions.
-* Maintain an auditable record of alerts and actions.
-* Continuously improve predictions using investigator feedback.
-
----
-
-# ✨ Key Features
-
-## 1. 🔮 Predictive Withdrawal Heatmap
-
-Forecasts potential withdrawal hotspots **2–6 hours ahead** at ATM/branch-cluster level rather than simply displaying historical crime locations.
-
-## 2. 🕸️ Mule Network Graph
-
-Visualizes relationships between accounts, complaints, transactions, and withdrawal locations.
-
-This helps investigators identify potentially connected mule networks across different jurisdictions.
-
-## 3. 🚨 Golden Hour Alert
-
-Identifies high-risk activity during the critical early period after a fraud complaint, helping stakeholders prioritize rapid intervention.
-
-## 4. 🧠 Explainable AI Risk Cards
-
-Each predicted hotspot provides an explanation for its risk score.
-
-Example:
-
-```text
-Risk Level: HIGH
-
-Reasons:
-• 3 linked complaints
-• Location associated with previous mule activity
-• Transaction pattern matches previous cash-out behavior
-• High-risk geographic cluster
-```
-
-## 5. 🌐 Cross-Jurisdiction Case Stitching
-
-Identifies relationships between complaints from different cities or states using shared transaction and account patterns.
-
-## 6. 🏦 Bank Co-Pilot
-
-Provides banks and financial institutions with risk information through APIs to support faster identification of suspicious accounts.
-
-## 7. 📢 Real-Time Alerts
-
-Alerts can be delivered to relevant stakeholders through:
-
-* Dashboard
-* API
-* SMS
-* Email
-* Push notifications
-
-## 8. 🗣️ Multilingual Investigator Assistant
-
-Enables LEA officers to query the system using natural language, including questions such as:
-
-```text
-"Show today's high-risk hotspots in my district."
-```
-
-## 9. 🔄 Feedback-Driven Learning
-
-Investigators can classify alerts as:
-
-```text
-True Positive
-False Positive
-```
-
-The feedback can then be used for future model retraining.
-
-## 10. ⛓️ Blockchain Audit Trail
-
-Alerts, actions, and relevant events can be recorded using a permissioned blockchain audit layer to provide an immutable audit trail.
-
-## 11. 📊 Risk Score API
-
-Provides risk scores to authorized banking and financial applications through secure APIs.
-
-## 12. 🎮 Simulation / War-Gaming Mode
-
-Allows authorized users to simulate different fraud scenarios and analyze possible resource requirements.
-
----
-
-# 🏗️ System Architecture
-
-Cyber Phera follows a four-layer architecture.
-
-```text
-┌─────────────────────────────────────────────┐
-│              DATA INGESTION                 │
-│                                             │
-│ NCRP • CFCFRMS • Transactions • ATM Data   │
-│ Geospatial Data • Historical Data           │
-└───────────────────┬─────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────────┐
-│          PREDICTIVE ANALYTICS ENGINE        │
-│                                             │
-│ Graph Analytics • ML • Anomaly Detection   │
-│ Spatio-Temporal Prediction                 │
-└───────────────────┬─────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────────┐
-│          INTELLIGENCE DASHBOARD             │
-│                                             │
-│ GIS Heatmap • Risk Scores • Risk Cards     │
-│ Mule Network • Case Intelligence            │
-└───────────────────┬─────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────────┐
-│       ALERT & COORDINATION LAYER            │
-│                                             │
-│ LEA • Banks • I4C • SMS • Email • API      │
-└───────────────────┬─────────────────────────┘
-                    ↓
-             Officer Feedback
-                    ↓
-             Model Retraining
-```
-
----
-
-# 🤖 AI / ML Components
-
-Cyber Phera uses multiple analytical techniques.
-
-| Component                | Technology / Technique                |
-| ------------------------ | ------------------------------------- |
-| Hotspot Prediction       | ST-GNN / LSTM + Geospatial Clustering |
-| Mule Network Detection   | Graph Analytics                       |
-| Community Detection      | Louvain / Label Propagation           |
-| Anomaly Detection        | Isolation Forest / Autoencoder        |
-| Explainability           | SHAP / LIME                           |
-| Time-Series Forecasting  | Prophet / Temporal Models             |
-| Geospatial Indexing      | H3 / PostGIS                          |
-| Complaint Classification | Multilingual NLP                      |
-| Investigator Assistant   | RAG + LLM                             |
-| Continuous Learning      | Feedback-based MLOps                  |
-
-The proposed solution specifically describes spatio-temporal forecasting, graph-based mule-network detection, anomaly scoring, and explainability.
-
----
-
-# 🗺️ Risk Heatmap
-
-The dashboard visualizes:
-
-* 🔴 High-risk locations
-* 🟠 Medium-risk locations
-* 🟢 Low-risk locations
-* ATM/branch locations
-* Predicted withdrawal windows
-* Crime categories
-* Geographic clusters
-* Historical activity
-
-Users can drill down by:
-
-```text
-Time
-↓
-State
-↓
-District
-↓
-Location
-↓
-ATM / Branch
-↓
-Risk Score
-↓
-Reason for Prediction
-```
-
----
-
-# 👮 Law Enforcement Interface
-
-Authorized investigators can access:
-
-### Dashboard
-
-* Current alerts
-* Predicted hotspots
-* Risk levels
-* Geographic intelligence
-
-### Investigation
-
-* Complaint details
-* Transaction relationships
-* Mule-network visualization
-* Linked cases
-
-### Intelligence
-
-* Risk explanations
-* Historical patterns
-* Predicted withdrawal windows
-
-### Action
-
-* Alert banks
-* Dispatch teams
-* Record investigation outcomes
-* Provide model feedback
-
-The problem statement specifically identifies a secure LEA interface for alerts, intelligence reports, and evidence documentation as a key deliverable.
-
----
-
-# 🔔 Alert System
-
-Cyber Phera can generate alerts when a predicted location crosses a defined risk threshold.
-
-```text
-Risk Score
-    ↓
-Threshold Check
-    ↓
-High Risk?
-   / \
- Yes  No
-  ↓    ↓
-Alert  Monitor
-  ↓
-LEA + Bank + I4C
-```
-
-Supported notification mechanisms include:
-
-* 📱 SMS
-* 📧 Email
-* 🔗 API
-* 🖥️ Dashboard notification
-
----
-
-# 🔗 Blockchain Audit Layer
-
-Cyber Phera incorporates blockchain specifically for **auditability**.
-
-A permissioned blockchain can maintain records of:
-
-```text
-Alert Created
-      ↓
-Alert Viewed
-      ↓
-Action Taken
-      ↓
-Freeze / Advisory Request
-      ↓
-Investigation Outcome
-```
-
-The proposed architecture identifies **Hyperledger Fabric** as the permissioned blockchain layer for government-oriented use.
-
----
-
-# 🗄️ Database Architecture
-
-### PostgreSQL + PostGIS
-
-Used for structured and geospatial data.
-
-Main entities:
-
-```text
-Complaints
-Transactions
-Withdrawal Locations
 Alerts
-Officer Feedback
+        ↓
+Preventive Action
 ```
+The goal is to help authorities move from:
 
-### Neo4j
-
-Used for relationship and network analysis.
-
-```text
-Account
-   ↓
-Transaction
-   ↓
-Account
-   ↓
-Withdrawal Location
-   ↓
-Complaint
-```
-
-Sensitive account information should use **hashed/tokenized references**, with identity resolution restricted to authorized systems.
+Reactive Investigation → Predictive Intelligence
 
 ---
 
-# 🔌 API Endpoints
+# 🚀 Key Features
 
-Proposed APIs include:
+#### 1. Predictive Location Intelligence
+Identify potentially high-risk locations where cybercrime funds may be withdrawn.
 
-```http
-GET /predict/hotspots
-```
+#### 3. GIS Risk Heatmap
+Visualize risk levels geographically using an interactive map.
 
-Returns predicted geographic risk scores.
+#### 5. Mule Network Analysis
+Analyze relationships between accounts, transactions and suspicious entities.
 
-```http
-POST /alerts/subscribe
-```
+#### 7. Risk-Based Alerts
+Generate alerts based on suspicious activity and risk levels. 
 
-Registers LEA/bank alert subscriptions.
+#### 8. Explainable Risk Analysis
+Provide understandable factors behind a risk prediction.
 
-```http
-POST /case/link
-```
+#### 9. Investigation Dashboard
+Provide investigators with important case and intelligence information in one place.
 
-Links potentially related cases across jurisdictions.
+#### 10. Feedback-Driven Intelligence
+Investigator feedback can be used to improve future intelligence.
 
-```http
-GET /audit/trail/{alertId}
-```
+#### 11. Role-Based Access
+Different users can access features according to their roles.
 
-Retrieves the audit trail for an alert.
+#### 12. Real-Time Communication
+WebSocket-based communication can support real-time updates and alerts.
 
-```http
-POST /genai/query
-```
-
-Allows authorized users to query the investigation assistant.
+#### 13. Search & Investigation Support
+Search and filter information to support investigation workflows.
 
 ---
 
-# 🛠️ Technology Stack
-
-### Frontend
-
-* React.js
-* Tailwind CSS
-* Mapbox GL / Leaflet
-* Recharts
-
-### Backend
-
-* Python
-* FastAPI
-* REST APIs
-
-### AI / ML
-
-* Python
-* PyTorch
-* TensorFlow
-* Scikit-learn
-* PyTorch Geometric
-* Prophet
-
-### Databases
-
-* PostgreSQL
-* PostGIS
-* Neo4j
-* Redis
-* Elasticsearch
-
-### Real-Time Processing
-
-* Apache Kafka
-* Apache Flink
-
-### Blockchain
-
-* Hyperledger Fabric
-
-### GenAI
-
-* Llama / Mistral
-* LangChain
-* RAG
-
-### DevOps
-
-* Docker
-* Kubernetes
-* Prometheus
-* Grafana
-
-The proposed technology stack in the solution blueprint includes React, FastAPI/Node.js, Python ML frameworks, Neo4j, PostgreSQL/PostGIS, Kafka/Flink, Redis, Elasticsearch, Hyperledger Fabric, and containerized deployment.
+# 🤖 AI / ML
+#### CYBER PEHRA uses machine learning and data analysis to support predictive cybercrime intelligence.
+Current prototype includes:
+- Machine Learning based risk prediction
+- Synthetic dataset generation for development
+- Risk analysis
+- Explainability support
+- Graph/network analysis
+- Predictive location analysis
+#### Future improvements may include:
+- Advanced spatio-temporal models
+- Graph Neural Networks
+- Time-series forecasting
+- Advanced anomaly detection
+- NLP-based investigation assistance
+- RAG-based intelligence systems
+- MLOps
+- Federated Learning
 
 ---
+# 🏗️ System Architecture
+  ```text
+  Cybercrime Data
+      ↓
+Data Processing
+      ↓
+AI / ML Intelligence
+      ↓
+Risk Prediction
+      ↓
+Location Intelligence
+      ↓
+Alerts & Investigation
+      ↓
+Law Enforcement Dashboard
 
-# 📂 Project Structure
+```
+# 💻 Technology Stack
+#### Frontend
+- React
+- TypeScript
+- Tailwind CSS
+- Vite
+- Interactive Maps
+- Data Visualization
+#### Backend
+- Python
+- FastAPI
+- SQLAlchemy
+- Pydantic
+- Alembic
+- Uvicorn
+#### AI / ML
+- Python
+- Pandas
+- NumPy
+- Scikit-learn
+- Machine Learning
+- Graph Analysis
+#### Database
+- SQL Database
+- SQLAlchemy
+- Alembic
+#### Real-Time
+- WebSockets
+#### Security
+- Authentication
+- Role-Based Access
+- Secure Password Handling
+- Environment Variables
+#### Deployment
+- Docker
+- Docker Compose
 
-```text
-Cyber-Phera/
-│
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── assets/
-│   │   └── App.jsx
-│   ├── package.json
-│   └── ...
+---
+# 📁 Project Structure
+  ```text
+CYBER-PEHRA/
 │
 ├── backend/
 │   ├── app/
 │   │   ├── api/
+│   │   ├── core/
 │   │   ├── models/
+│   │   ├── schemas/
 │   │   ├── services/
 │   │   ├── ml/
 │   │   └── main.py
+│   │
+│   ├── tests/
 │   ├── requirements.txt
-│   └── ...
+│   ├── Dockerfile
+│   └── docker-compose.yml
 │
-├── ml/
-│   ├── datasets/
-│   ├── preprocessing/
-│   ├── models/
-│   └── training/
-│
-├── blockchain/
-│   ├── contracts/
-│   └── network/
-│
-├── docs/
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.ts
 │
 ├── .gitignore
-├── README.md
-└── docker-compose.yml
+├── package.json
+└── README.md
 ```
-
 ---
 
 # ⚙️ Installation
-
-## 1. Clone Repository
-
-```bash
-git clone https://github.com/your-username/cyber-phera.git
-cd cyber-phera
+### Clone Repository
+ ```text
+git clone https://github.com/prajjwalpande07/CYBER-PEHRA.git
+cd CYBER-PEHRA
 ```
-
-## 2. Backend Setup
-
-```bash
+### 🔧 Backend Setup
+```text
 cd backend
 ```
-
-Create virtual environment:
-
-```bash
+#### Create virtual environment:
+```text
 python -m venv venv
 ```
-
-Activate on Windows:
-
-```bash
+#### Activate it on Windows:
+```text
 venv\Scripts\activate
 ```
-
-Install dependencies:
-
-```bash
+#### Install dependencies:
+```text
 pip install -r requirements.txt
 ```
-
-Start FastAPI:
-
-```bash
+### Create .env file using .env.example.
+#### Run backend:
+```text
 uvicorn app.main:app --reload
 ```
-
-Backend will normally run at:
-
+#### Backend will run on:
 ```text
-http://127.0.0.1:8000
+http://localhost:8000
 ```
-
----
-
-# 💻 Frontend Setup
-
-Open another terminal:
-
-```bash
+### 🎨 Frontend Setup
+#### Open another terminal:
+```text
 cd frontend
 ```
-
-Install dependencies:
-
-```bash
+#### Install dependencies:
+```text
 npm install
 ```
-
-Start development server:
-
-```bash
+#### Run frontend:
+```text
 npm run dev
 ```
-
-The frontend URL will normally be:
-
+#### Frontend will run on:
 ```text
 http://localhost:5173
 ```
-
 ---
-
-# 🧪 Demo Workflow
-
-Cyber Phera can be demonstrated using synthetic data:
-
-```text
-1. Submit simulated cybercrime complaint
-              ↓
-2. Transaction data enters system
-              ↓
-3. Mule network is analyzed
-              ↓
-4. ML model calculates risk
-              ↓
-5. Predicted hotspots appear
-              ↓
-6. Investigator opens risk card
-              ↓
-7. Alert sent to bank / LEA
-              ↓
-8. Investigator records outcome
-              ↓
-9. Feedback enters ML pipeline
-              ↓
-10. Audit record is generated
-```
-
-The proposed demo flow follows this sequence: simulated complaint → real-time risk calculation → hotspot visualization → explainable risk card → alert → mule-network graph → investigator feedback → audit trail.
-
----
-
-# 📊 Data Sources
-
-For development and demonstration, the proposed solution identifies:
-
-* Synthetic fraud transaction datasets
-* PaySim
-* Credit Card Fraud Detection datasets
-* ATM/bank-branch location data
-* Population-density data
-* OpenStreetMap
-* Public cybercrime/fraud statistics
-
-Actual government datasets should only be used when appropriate authorization and access are available.
-
----
-
 # 🔐 Security & Privacy
-
-Cyber Phera is designed with security and privacy considerations including:
-
-* Role-Based Access Control (RBAC)
-* OAuth2 authentication
-* Tokenized/hashed account references
-* Restricted identity resolution
-* Secure APIs
-* Permissioned blockchain audit
-* Data localization for sensitive government data
-* On-premise / sovereign-cloud deployment for sensitive workloads
-
+### CYBER PEHRA is designed with security and privacy in mind.
+#### Important practices include:
+- Authentication
+- Role-based access
+- Secure password handling
+- Environment-based configuration
+- No sensitive credentials stored in Git
+- Database files excluded from version control
+- .env files excluded using .gitignore
 ---
-
-# 📈 Impact
-
-Cyber Phera aims to support:
-
-### ⚡ Faster Response
-
-Provide intelligence before potential cash withdrawal events.
-
-### 💰 Better Fund Recovery Opportunities
-
-Help banks and LEAs act faster on suspicious financial activity.
-
-### 👮 Improved Law-Enforcement Coordination
-
-Enable intelligence sharing across jurisdictions.
-
-### 🧠 Data-Driven Investigation
-
-Use transaction, geographic, and network patterns to support investigations.
-
-### 🔄 Continuous Improvement
-
-Use investigator feedback to improve future predictions.
-
-The problem statement specifically describes proactive intervention, faster fund blocking, real-time intelligence sharing, and improved coordination between LEAs and financial institutions.
-
+# 📊 Development Data
+#### The project can use synthetic/demo data during development and testing.
+#### No real citizen financial information should be committed to this repository.
 ---
-
-# 🚀 Future Scope
-
-Future development can include:
-
-* Real-time UPI/NPCI fraud signals
-* Cross-border mule-network detection
-* Predictive victim warnings
-* Federated learning across banks
-* National financial-crime early-warning capabilities
-* Advanced multilingual AI assistants
-* More sophisticated spatio-temporal models
-* Integration with additional authorized financial intelligence sources
-
-These areas are included in the proposed solution's future-scope roadmap.
-
+# 🎯 Objectives
+### CYBER PEHRA aims to:
+- Predict potential cybercrime fund withdrawal locations
+- Identify high-risk areas
+- Support cybercrime investigations
+- Connect transaction and location intelligence
+- Provide explainable risk information
+- Generate actionable alerts
+- Help authorities take preventive action
 ---
-
-# 🏛️ Project Context
-
-| Field           | Details                                                    |
-| --------------- | ---------------------------------------------------------- |
-| Organization    | Ministry of Home Affairs                                   |
-| Department      | Indian Cyber Crime Coordination Centre (I4C), CIS Division |
-| Category        | Software                                                   |
-| Theme           | Blockchain & Cybersecurity                                 |
-| Project         | Cyber Phera                                                |
-| Core Technology | AI/ML + GIS + Graph Analytics + Blockchain                 |
-
-The original problem statement identifies the Ministry of Home Affairs and I4C/CIS Division under the **Blockchain & Cybersecurity** theme.
-
+# 🔮 Future Vision
+#### The long-term vision is to create a complete cybercrime intelligence ecosystem.
+### USER SIDE
+```text
+AI Guidance
+     ↓
+Complaint Assistance
+     ↓
+Complaint Tracking
+     ↓
+Victim Support
+```
+### ADMIN SIDE
+```text
+Complaint Data
+     ↓
+Predictive Analytics
+     ↓
+Risk Hotspots
+     ↓
+Real-Time Alerts
+     ↓
+Preventive Action
+```
+### FUTURE
+```text
+USER SIDE
+    +
+ADMIN SIDE
+    ↓
+ONE CONNECTED PLATFORM
+```
 ---
-
-# 👥 Target Stakeholders
-
-* 👮 Law Enforcement Agencies
-* 🏦 Banks
-* 💳 Financial Institutions
-* 🏛️ I4C
-* 🛡️ Cybercrime Investigation Teams
-* 🏢 Government Security Organizations
-
+# 🌍 Impact
+#### CYBER PEHRA can help move cybercrime response from:
+```text
+Reactive
+   ↓
+Investigative
+   ↓
+Predictive
+   ↓
+Preventive
+```
+The goal is to help authorities act faster and make better data-driven decisions.
 ---
-
+# 🏆 Achievements
+- 🥇 GDG Hackathon Winner
+- 🏆 Hackathon participation and project development journey
+- 🥇 Ranked #1 at the PPT submission stage among 800+ submissions
+- 🚀 Smart India Hackathon journey
+- 💡 Multiple iterations from idea to working prototype
+---
+# 👥 Team
+#### CYBER PEHRA was developed a focus on:
+- Cybersecurity
+- Artificial Intelligence
+- Machine Learning
+- Web Development
+- Data Analysis
+- Geospatial Intelligence
+---
 # 🤝 Contributing
-
-Contributions are welcome.
-
-```bash
-git checkout -b feature/new-feature
-```
-
-Make your changes and commit:
-
-```bash
-git add .
-git commit -m "Add new feature"
-```
-
-Push your branch:
-
-```bash
-git push origin feature/new-feature
-```
-
-Then create a Pull Request.
+#### Contributions, ideas and suggestions are welcome.
+#### If you want to contribute:
+1. Fork the repository
+2. Create a new branch
+3. Make your changes
+4. Commit your changes
+5. Create a Pull Request
+---
+# 📄 License
+This project is developed for educational, research and innovation purposes.
 
 ---
+# ❤️ Our Vision
+We started by solving the victim's problem, evolved to solve the authority's problem, and aim to connect both in the future.
 
-# 📜 License
-
-This project is developed as a cybersecurity and predictive analytics solution for educational, research, and prototype purposes.
-
-Deployment with real government, banking, financial, or law-enforcement data requires appropriate authorization, security controls, and compliance procedures.
-
----
-
-# 👨‍💻 Cyber Phera
-
-### 🛡️ Predict. Alert. Act.
-
-**Cyber Phera** transforms cybercrime response from:
-
-```text
-REACTIVE
-Complaint → Investigation → Action
-```
-
-into:
-
-```text
-PROACTIVE
-Complaint → Prediction → Alert → Action → Feedback → Learning
-```
-
-> **Turning cybercrime data into actionable intelligence before the money disappears.**
+ From helping victims after cybercrime happens to helping authorities act before the next incident.
