@@ -1,0 +1,983 @@
+import os
+import sys
+from datetime import datetime, timezone
+
+# Ensure backend root is on sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from sqlalchemy.orm import Session
+from app.core.database import SessionLocal, engine, Base
+from app.core.security import get_password_hash
+from app.models.user import User
+from app.models.complaint import Complaint
+from app.models.location import WithdrawalLocation
+from app.models.alert import AlertNotification
+from app.models.investigation import InvestigationCase
+from app.models.feedback import OfficerFeedbackRecord
+from app.models.audit import BlockchainBlock
+from app.models.model_meta import ModelMetrics
+from app.models.data_fusion import DataFusionSource
+from app.models.mule import MuleNode, MuleEdge
+from app.services.audit_service import calculate_block_hash, GENESIS_HASH
+
+def seed_database(db: Session):
+    print("Beginning CYBER PEHRA database seeding...")
+
+    # 1. USERS
+    users_data = [
+        {
+            "id": "USR-001",
+            "email": "admin@cyberpehra.gov.in",
+            "username": "admin",
+            "hashed_password": get_password_hash("Admin@12345"),
+            "role": "ADMIN",
+            "full_name": "Dr. A. K. Ranganathan (Chief Data Scientist)",
+            "badge_number": "MHA-DS-01",
+            "police_station": "National Cyber Analytics Center, New Delhi",
+            "is_active": True,
+        },
+        {
+            "id": "USR-002",
+            "email": "lea@cyberpehra.gov.in",
+            "username": "lea_officer",
+            "hashed_password": get_password_hash("Officer@12345"),
+            "role": "LEA_OFFICER",
+            "full_name": "Insp. V. K. Sharma (Cyber Crime Cell)",
+            "badge_number": "MH-CY-1049",
+            "police_station": "Pune Cyber Police Station",
+            "is_active": True,
+        },
+        {
+            "id": "USR-003",
+            "email": "bank@cyberpehra.gov.in",
+            "username": "bank_officer",
+            "hashed_password": get_password_hash("Bank@12345"),
+            "role": "BANK_OFFICER",
+            "full_name": "Rajeshwari Iyer (Nodal Fraud Officer)",
+            "badge_number": "SBI-FRM-882",
+            "police_station": "SBI Fraud Risk Management Hub, Mumbai",
+            "is_active": True,
+        },
+        {
+            "id": "USR-004",
+            "email": "i4c@cyberpehra.gov.in",
+            "username": "i4c_analyst",
+            "hashed_password": get_password_hash("I4c@12345"),
+            "role": "I4C_OFFICER",
+            "full_name": "Col. Ramanjit Singh (I4C Coordinator)",
+            "badge_number": "I4C-COORD-504",
+            "police_station": "Indian Cyber Crime Coordination Centre, MHA",
+            "is_active": True,
+        },
+    ]
+
+    for u in users_data:
+        existing = db.query(User).filter(User.id == u["id"]).first()
+        if not existing:
+            db.add(User(**u))
+
+    # 2. LOCATIONS (ATMs, Bank Branches, CSP Kiosks across Indian locations)
+    locations_data = [
+        {
+            "id": "LOC-MH-02",
+            "name": "SBI Main Branch ATM & E-Corner",
+            "bank_name": "State Bank of India",
+            "type": "ATM",
+            "state": "Maharashtra",
+            "district": "Nanded",
+            "address": "Vazirabad Square, Station Road, Nanded - 431601",
+            "latitude": 19.1528,
+            "longitude": 77.3195,
+            "risk_score": 96.0,
+            "risk_level": "CRITICAL",
+            "predicted_time_window": "Within next 45 – 90 mins",
+            "amount_at_risk": 2200000.0,
+            "confidence_score": 94.0,
+            "status": "Alert Sent",
+            "linked_complaint_ids": ["CP-2026-8949"],
+            "linked_mule_accounts": ["50100482910482", "8819201928"],
+            "nearest_police_station": "Vazirabad Police Station (350m)",
+            "distance_to_patrol_km": 0.8,
+            "cctv_operational": True,
+            "cash_reserve": 1850000.0,
+            "last_anomaly_detected": "10 mins ago",
+            "reasons": [
+                {"factor": "Previous Mule Account Cash-outs", "impact": 28, "description": "4 previous cash withdrawals linked to Jamtara syndicate occurred at this exact machine", "category": "mule"},
+                {"factor": "High Transaction Velocity", "impact": 24, "description": "3 fast ATM card PIN test balance inquiries registered within 8 minutes", "category": "temporal"},
+                {"factor": "Geographic Hotspot Proximity", "impact": 20, "description": "Border crossing transit route within 3km of State Highway 261", "category": "spatial"},
+                {"factor": "Layering Chain Completion", "impact": 14, "description": "Fund transferred to Layer 2 debit card with immediate withdrawal limit enable", "category": "network"},
+                {"factor": "High Risk Transfer Quantum", "impact": 10, "description": "Single high-value payload of ₹22,00,000 matching coordinated withdrawal pattern", "category": "transactional"},
+            ],
+        },
+        {
+            "id": "LOC-MH-01",
+            "name": "HDFC Bank ATM Kiosk - Shivaji Nagar",
+            "bank_name": "HDFC Bank",
+            "type": "ATM",
+            "state": "Maharashtra",
+            "district": "Pune",
+            "address": "Near Pune Railway Station, Shivaji Nagar, Pune - 411005",
+            "latitude": 18.5314,
+            "longitude": 73.8446,
+            "risk_score": 92.0,
+            "risk_level": "CRITICAL",
+            "predicted_time_window": "Within next 60 mins",
+            "amount_at_risk": 1450000.0,
+            "confidence_score": 91.0,
+            "status": "Patrol Dispatched",
+            "linked_complaint_ids": ["CP-2026-8941"],
+            "linked_mule_accounts": ["50100482910482"],
+            "nearest_police_station": "Shivaji Nagar Cyber Police Station (600m)",
+            "distance_to_patrol_km": 0.4,
+            "cctv_operational": True,
+            "cash_reserve": 2400000.0,
+            "last_anomaly_detected": "25 mins ago",
+            "reasons": [
+                {"factor": "Digital Arrest Payload Velocity", "impact": 32, "description": "Large RTGS chunk liquidated into primary mule account within 18 minutes", "category": "mule"},
+                {"factor": "Urban Transit Node", "impact": 22, "description": "Positioned immediately adjacent to Pune Railway Station for rapid getaway", "category": "spatial"},
+                {"factor": "Consecutive Micro-Debits", "impact": 20, "description": "Pre-withdrawal balance probe observed via NPCI switch telemetry", "category": "temporal"},
+                {"factor": "High Value Extortion Match", "impact": 18, "description": "Payload matches CBI impersonation syndicate modus operandi", "category": "transactional"},
+            ],
+        },
+        {
+            "id": "LOC-MH-03",
+            "name": "Bank of Baroda E-Lobby - Nariman Point",
+            "bank_name": "Bank of Baroda",
+            "type": "Bank Branch",
+            "state": "Maharashtra",
+            "district": "Mumbai",
+            "address": "Mittal Towers, Nariman Point, Mumbai - 400021",
+            "latitude": 18.9256,
+            "longitude": 72.8242,
+            "risk_score": 88.0,
+            "risk_level": "CRITICAL",
+            "predicted_time_window": "Within next 75 mins",
+            "amount_at_risk": 3500000.0,
+            "confidence_score": 90.0,
+            "status": "Under Surveillance",
+            "linked_complaint_ids": [],
+            "linked_mule_accounts": ["10291048291"],
+            "nearest_police_station": "Marine Drive Police Station",
+            "distance_to_patrol_km": 1.1,
+            "cctv_operational": True,
+            "cash_reserve": 5000000.0,
+            "last_anomaly_detected": "30 mins ago",
+            "reasons": [
+                {"factor": "Shell Company Liquidation", "impact": 30, "description": "Corporate current account attempt to execute over-the-counter cheque withdrawal", "category": "mule"},
+                {"factor": "High Value Quantum", "impact": 26, "description": "₹35 Lakh transfer from foreign institutional impersonation scam", "category": "transactional"},
+                {"factor": "Financial Hub Transit", "impact": 18, "description": "CBD location with heavy footfall utilized to mask suspect runner identity", "category": "spatial"},
+            ],
+        },
+        {
+            "id": "LOC-MH-04",
+            "name": "Axis Bank ATM - Sitabuldi",
+            "bank_name": "Axis Bank",
+            "type": "ATM",
+            "state": "Maharashtra",
+            "district": "Nagpur",
+            "address": "Sitabuldi Main Road, Nagpur - 440012",
+            "latitude": 21.1458,
+            "longitude": 79.0882,
+            "risk_score": 79.0,
+            "risk_level": "HIGH",
+            "predicted_time_window": "Within next 90 mins",
+            "amount_at_risk": 780000.0,
+            "confidence_score": 87.0,
+            "status": "Monitoring",
+            "linked_complaint_ids": [],
+            "linked_mule_accounts": ["91802938172"],
+            "nearest_police_station": "Sitabuldi Police Station",
+            "distance_to_patrol_km": 1.5,
+            "cctv_operational": True,
+            "cash_reserve": 1200000.0,
+            "last_anomaly_detected": "45 mins ago",
+            "reasons": [
+                {"factor": "Mule Card Dispersion", "impact": 25, "description": "Mule associate observed in transit via Nagpur Metro corridor", "category": "mule"},
+                {"factor": "Temporal Alignment", "impact": 20, "description": "Matches post-banking hours ATM cash sweep timing", "category": "temporal"},
+            ],
+        },
+        {
+            "id": "LOC-MH-05",
+            "name": "ICICI Bank ATM - Canada Corner",
+            "bank_name": "ICICI Bank",
+            "type": "ATM",
+            "state": "Maharashtra",
+            "district": "Nashik",
+            "address": "Sharanpur Road, Canada Corner, Nashik - 422002",
+            "latitude": 19.9975,
+            "longitude": 73.7898,
+            "risk_score": 75.0,
+            "risk_level": "HIGH",
+            "predicted_time_window": "Within next 2 hours",
+            "amount_at_risk": 540000.0,
+            "confidence_score": 85.0,
+            "status": "Monitoring",
+            "linked_complaint_ids": [],
+            "linked_mule_accounts": ["0021019284"],
+            "nearest_police_station": "Sarkarwada Police Station",
+            "distance_to_patrol_km": 2.0,
+            "cctv_operational": True,
+            "cash_reserve": 900000.0,
+            "last_anomaly_detected": "1 hour ago",
+            "reasons": [
+                {"factor": "Rapid Multiple Swipes", "impact": 22, "description": "Card skimming and duplicate issuance flagged on regional gateway", "category": "mule"},
+            ],
+        },
+        {
+            "id": "LOC-MH-06",
+            "name": "SBI Branch & Cash Deposit Kiosk - Jalna Road",
+            "bank_name": "State Bank of India",
+            "type": "Bank Branch",
+            "state": "Maharashtra",
+            "district": "Chhatrapati Sambhajinagar",
+            "address": "Jalna Road, Near Mondha Naka, Chhatrapati Sambhajinagar - 431001",
+            "latitude": 19.8762,
+            "longitude": 75.3433,
+            "risk_score": 84.0,
+            "risk_level": "HIGH",
+            "predicted_time_window": "Within next 70 mins",
+            "amount_at_risk": 1650000.0,
+            "confidence_score": 89.0,
+            "status": "Alert Sent",
+            "linked_complaint_ids": [],
+            "linked_mule_accounts": ["40291048291"],
+            "nearest_police_station": "Kranti Chowk Police Station",
+            "distance_to_patrol_km": 1.2,
+            "cctv_operational": True,
+            "cash_reserve": 2800000.0,
+            "last_anomaly_detected": "15 mins ago",
+            "reasons": [
+                {"factor": "Inter-district Syndicate Courier", "impact": 27, "description": "Courier moving along Aurangabad-Jalna expressway towards Marathwada belt", "category": "spatial"},
+                {"factor": "High Value Token", "impact": 23, "description": "Large cash withdrawal slip generated via mobile banking request", "category": "transactional"},
+            ],
+        },
+        {
+            "id": "LOC-DL-01",
+            "name": "HDFC Bank 24x7 ATM - Connaught Place",
+            "bank_name": "HDFC Bank",
+            "type": "ATM",
+            "state": "Delhi",
+            "district": "New Delhi",
+            "address": "Inner Circle, Block C, Connaught Place, New Delhi - 110001",
+            "latitude": 28.6315,
+            "longitude": 77.2167,
+            "risk_score": 85.0,
+            "risk_level": "CRITICAL",
+            "predicted_time_window": "Within next 40 mins",
+            "amount_at_risk": 1800000.0,
+            "confidence_score": 92.0,
+            "status": "Patrol Dispatched",
+            "linked_complaint_ids": ["CP-2026-8944"],
+            "linked_mule_accounts": ["7819201928"],
+            "nearest_police_station": "Connaught Place Police Station (200m)",
+            "distance_to_patrol_km": 0.3,
+            "cctv_operational": True,
+            "cash_reserve": 3200000.0,
+            "last_anomaly_detected": "18 mins ago",
+            "reasons": [
+                {"factor": "Telegram Task Scam Clearing", "impact": 29, "description": "Funds aggregated from 12 victims channeled into Delhi NCR withdrawal hub", "category": "mule"},
+                {"factor": "Metro Interconnect Proximity", "impact": 22, "description": "Adjacent to Rajiv Chowk Metro entrance allowing immediate transit getaway", "category": "spatial"},
+            ],
+        },
+        {
+            "id": "LOC-KA-01",
+            "name": "ICICI Bank ATM - Indiranagar 100ft Road",
+            "bank_name": "ICICI Bank",
+            "type": "ATM",
+            "state": "Karnataka",
+            "district": "Bengaluru Urban",
+            "address": "100 Feet Road, HAL 2nd Stage, Indiranagar, Bengaluru - 560038",
+            "latitude": 12.9719,
+            "longitude": 77.6412,
+            "risk_score": 94.0,
+            "risk_level": "CRITICAL",
+            "predicted_time_window": "Within next 50 mins",
+            "amount_at_risk": 3200000.0,
+            "confidence_score": 93.0,
+            "status": "Alert Sent",
+            "linked_complaint_ids": ["CP-2026-8943"],
+            "linked_mule_accounts": ["091827364512"],
+            "nearest_police_station": "Indiranagar Police Station (450m)",
+            "distance_to_patrol_km": 0.6,
+            "cctv_operational": True,
+            "cash_reserve": 2500000.0,
+            "last_anomaly_detected": "5 mins ago",
+            "reasons": [
+                {"factor": "Institutional IPO Fraud Funnel", "impact": 34, "description": "Large single tranche transfer linked to fake institutional allotment application", "category": "transactional"},
+                {"factor": "High Value Multi-ATM Extraction", "impact": 26, "description": "Coordinated withdrawal orders queued across 3 neighbouring machines", "category": "network"},
+            ],
+        },
+        {
+            "id": "LOC-TS-01",
+            "name": "Canara Bank E-Lobby - Hitec City",
+            "bank_name": "Canara Bank",
+            "type": "ATM",
+            "state": "Telangana",
+            "district": "Hyderabad",
+            "address": "Cyber Towers Junction, Madhapur, Hitec City, Hyderabad - 500081",
+            "latitude": 17.4504,
+            "longitude": 78.3808,
+            "risk_score": 88.0,
+            "risk_level": "CRITICAL",
+            "predicted_time_window": "Within next 60 mins",
+            "amount_at_risk": 890000.0,
+            "confidence_score": 90.0,
+            "status": "Under Surveillance",
+            "linked_complaint_ids": ["CP-2026-8946"],
+            "linked_mule_accounts": ["11002819284"],
+            "nearest_police_station": "Madhapur Cyberabad Police Station",
+            "distance_to_patrol_km": 0.9,
+            "cctv_operational": True,
+            "cash_reserve": 1700000.0,
+            "last_anomaly_detected": "22 mins ago",
+            "reasons": [
+                {"factor": "SIM Swap Cash-Out", "impact": 31, "description": "High probability extraction node following midnight eSIM unauthorized porting", "category": "mule"},
+            ],
+        },
+        {
+            "id": "LOC-RJ-01",
+            "name": "PNB Highway CSP Kiosk - Bharatpur",
+            "bank_name": "Punjab National Bank",
+            "type": "CSP/Kiosk",
+            "state": "Rajasthan",
+            "district": "Bharatpur",
+            "address": "Near Kaman Chauraha, Mathura-Bharatpur Highway, Bharatpur - 321001",
+            "latitude": 27.2152,
+            "longitude": 77.4929,
+            "risk_score": 95.0,
+            "risk_level": "CRITICAL",
+            "predicted_time_window": "Within next 30 mins",
+            "amount_at_risk": 185000.0,
+            "confidence_score": 96.0,
+            "status": "Patrol Dispatched",
+            "linked_complaint_ids": ["CP-2026-8942"],
+            "linked_mule_accounts": ["9821039182"],
+            "nearest_police_station": "Bharatpur Kotwali Police Station",
+            "distance_to_patrol_km": 0.5,
+            "cctv_operational": False,
+            "cash_reserve": 650000.0,
+            "last_anomaly_detected": "2 mins ago",
+            "reasons": [
+                {"factor": "Mewat Hotspot Cluster Node", "impact": 35, "description": "Rural CSP agent repeatedly flagged for unauthorized micro-cash disbursements for phishing rings", "category": "mule"},
+                {"factor": "Zero CCTV Coverage", "impact": 22, "description": "Kiosk lacks operational CCTV surveillance, heavily favored by local cash runners", "category": "spatial"},
+            ],
+        },
+    ]
+
+    for loc in locations_data:
+        existing = db.query(WithdrawalLocation).filter(WithdrawalLocation.id == loc["id"]).first()
+        if not existing:
+            db.add(WithdrawalLocation(**loc))
+
+    # 3. COMPLAINTS (20+ realistic Indian cybercrime records)
+    complaints_data = [
+        {
+            "id": "CP-2026-8941",
+            "ncrp_ref": "NCRP-2026-MHA-98214",
+            "victim_name": "Rameshwar K. Joshi",
+            "contact_number": "+91 98231 XXXXX",
+            "complaint_type": "Digital Arrest",
+            "transaction_id": "TXN-9081248102",
+            "transaction_amount": 1450000.0,
+            "transaction_time": "2026-09-23T08:15:00+05:30",
+            "bank": "State Bank of India",
+            "account_info": "SBI Savings - 40291048291",
+            "suspected_account": "HDFC Bank - 50100482910482",
+            "transaction_location": "Pune, Maharashtra",
+            "state": "Maharashtra",
+            "district": "Pune",
+            "latitude": 18.5204,
+            "longitude": 73.8567,
+            "complaint_description": "Victim received video call impersonating CBI & Telecom Department. Coerced into liquidating fixed deposits and RTGS transfer under digital arrest pretext.",
+            "evidence_upload": "cbi_fake_warrant.pdf",
+            "status": "Predicted",
+            "risk_score": 92.0,
+            "risk_level": "CRITICAL",
+            "predicted_location_id": "LOC-MH-01",
+            "created_at": "2026-09-23T08:35:00+05:30",
+        },
+        {
+            "id": "CP-2026-8942",
+            "ncrp_ref": "NCRP-2026-RAJ-41209",
+            "victim_name": "Sunita Meena",
+            "contact_number": "+91 94140 XXXXX",
+            "complaint_type": "UPI Phishing",
+            "transaction_id": "UPI-981240182390",
+            "transaction_amount": 185000.0,
+            "transaction_time": "2026-09-23T09:10:00+05:30",
+            "bank": "Punjab National Bank",
+            "account_info": "PNB - 08120019284",
+            "suspected_account": "Airtel Payments Bank - 9821039182",
+            "transaction_location": "Jaipur, Rajasthan",
+            "state": "Rajasthan",
+            "district": "Jaipur",
+            "latitude": 26.9124,
+            "longitude": 75.7873,
+            "complaint_description": "Received electricity bill disconnection SMS with fake APK link. Phone screen mirrored and 3 successive UPI debit transfers executed.",
+            "evidence_upload": "apk_dump.txt",
+            "status": "Under Investigation",
+            "risk_score": 84.0,
+            "risk_level": "HIGH",
+            "predicted_location_id": "LOC-RJ-01",
+            "created_at": "2026-09-23T09:25:00+05:30",
+        },
+        {
+            "id": "CP-2026-8943",
+            "ncrp_ref": "NCRP-2026-KAR-77192",
+            "victim_name": "Ananya S. Rao",
+            "contact_number": "+91 80234 XXXXX",
+            "complaint_type": "Fake Investment App",
+            "transaction_id": "TXN-774910284",
+            "transaction_amount": 3200000.0,
+            "transaction_time": "2026-09-23T07:40:00+05:30",
+            "bank": "ICICI Bank",
+            "account_info": "ICICI Wealth - 002101928410",
+            "suspected_account": "Yes Bank - 091827364512",
+            "transaction_location": "Bengaluru, Karnataka",
+            "state": "Karnataka",
+            "district": "Bengaluru Urban",
+            "latitude": 12.9716,
+            "longitude": 77.5946,
+            "complaint_description": "Lured into VIP WhatsApp group promising 400% institutional returns on institutional IPO allotment. Platform blocked withdrawal requiring 30% release fee.",
+            "evidence_upload": "whatsapp_chat.pdf",
+            "status": "Predicted",
+            "risk_score": 94.0,
+            "risk_level": "CRITICAL",
+            "predicted_location_id": "LOC-KA-01",
+            "created_at": "2026-09-23T08:00:00+05:30",
+        },
+        {
+            "id": "CP-2026-8944",
+            "ncrp_ref": "NCRP-2026-DEL-10482",
+            "victim_name": "Devendra Mohan",
+            "contact_number": "+91 98110 XXXXX",
+            "complaint_type": "Part-time Job Fraud",
+            "transaction_id": "IMPS-8821940182",
+            "transaction_amount": 460000.0,
+            "transaction_time": "2026-09-23T10:05:00+05:30",
+            "bank": "Bank of Baroda",
+            "account_info": "BOB - 192801002918",
+            "suspected_account": "Kotak Mahindra - 7819201928",
+            "transaction_location": "New Delhi, Delhi NCR",
+            "state": "Delhi",
+            "district": "New Delhi",
+            "latitude": 28.6139,
+            "longitude": 77.209,
+            "complaint_description": "Telegram merchant prepaid rating scam. Initial payouts given, then trapped in multi-level task escrow requiring increasing deposits.",
+            "evidence_upload": "telegram_tasks.png",
+            "status": "Analyzing",
+            "risk_score": 78.0,
+            "risk_level": "HIGH",
+            "predicted_location_id": "LOC-DL-01",
+            "created_at": "2026-09-23T10:20:00+05:30",
+        },
+        {
+            "id": "CP-2026-8949",
+            "ncrp_ref": "NCRP-2026-MHA-88210",
+            "victim_name": "Sanjay Deshmukh",
+            "contact_number": "+91 98900 XXXXX",
+            "complaint_type": "Digital Arrest",
+            "transaction_id": "RTGS-110293847",
+            "transaction_amount": 2200000.0,
+            "transaction_time": "2026-09-23T08:50:00+05:30",
+            "bank": "Bank of Maharashtra",
+            "account_info": "BOM - 60192840192",
+            "suspected_account": "Kotak Mahindra - 8819201928",
+            "transaction_location": "Nanded, Maharashtra",
+            "state": "Maharashtra",
+            "district": "Nanded",
+            "latitude": 19.1383,
+            "longitude": 77.321,
+            "complaint_description": "Elderly retired professor targeted with customs parcel illegal narcotics accusation. Transferred retirement gratuity under duress.",
+            "evidence_upload": "customs_notice.pdf",
+            "status": "Predicted",
+            "risk_score": 96.0,
+            "risk_level": "CRITICAL",
+            "predicted_location_id": "LOC-MH-02",
+            "created_at": "2026-09-23T09:05:00+05:30",
+        },
+        {
+            "id": "CP-2026-8946",
+            "ncrp_ref": "NCRP-2026-TEL-33910",
+            "victim_name": "Venkata Satyanarayana",
+            "contact_number": "+91 99890 XXXXX",
+            "complaint_type": "SIM Swap",
+            "transaction_id": "RTGS-9901827461",
+            "transaction_amount": 890000.0,
+            "transaction_time": "2026-09-22T23:30:00+05:30",
+            "bank": "Union Bank of India",
+            "account_info": "UBI - 5101010029182",
+            "suspected_account": "Canara Bank - 11002819284",
+            "transaction_location": "Hyderabad, Telangana",
+            "state": "Telangana",
+            "district": "Hyderabad",
+            "latitude": 17.385,
+            "longitude": 78.4867,
+            "complaint_description": "Mobile network went dead late night. Fraudsters procured duplicate eSIM using forged Aadhaar and wiped bank account via net banking OTP bypass.",
+            "evidence_upload": "esim_screenshot.png",
+            "status": "Under Investigation",
+            "risk_score": 88.0,
+            "risk_level": "HIGH",
+            "predicted_location_id": "LOC-TS-01",
+            "created_at": "2026-09-23T06:00:00+05:30",
+        },
+        {
+            "id": "CP-2026-8951",
+            "ncrp_ref": "NCRP-2026-MHA-19284",
+            "victim_name": "Deepak K. Shinde",
+            "contact_number": "+91 98220 XXXXX",
+            "complaint_type": "Loan App Extortion",
+            "transaction_id": "TXN-881928401",
+            "transaction_amount": 340000.0,
+            "transaction_time": "2026-09-23T08:00:00+05:30",
+            "bank": "State Bank of India",
+            "account_info": "SBI - 2019284019",
+            "suspected_account": "Axis Bank - 91802938172",
+            "transaction_location": "Nagpur, Maharashtra",
+            "state": "Maharashtra",
+            "district": "Nagpur",
+            "latitude": 21.1458,
+            "longitude": 79.0882,
+            "complaint_description": "Instant 7-day micro loan app harassment with contacts blackmailed.",
+            "evidence_upload": "loan_app_threat.txt",
+            "status": "Analyzing",
+            "risk_score": 79.0,
+            "risk_level": "HIGH",
+            "predicted_location_id": "LOC-MH-04",
+            "created_at": "2026-09-23T08:30:00+05:30",
+        },
+        {
+            "id": "CP-2026-8952",
+            "ncrp_ref": "NCRP-2026-MHA-55201",
+            "victim_name": "Pooja Jadhav",
+            "contact_number": "+91 94221 XXXXX",
+            "complaint_type": "UPI Phishing",
+            "transaction_id": "UPI-3391028374",
+            "transaction_amount": 165000.0,
+            "transaction_time": "2026-09-23T09:15:00+05:30",
+            "bank": "HDFC Bank",
+            "account_info": "HDFC - 5010029182",
+            "suspected_account": "ICICI Bank - 0021019284",
+            "transaction_location": "Nashik, Maharashtra",
+            "state": "Maharashtra",
+            "district": "Nashik",
+            "latitude": 19.9975,
+            "longitude": 73.7898,
+            "complaint_description": "Fake courier KYC link SMS clicked, authorization PIN intercepted.",
+            "evidence_upload": "phishing_sms.png",
+            "status": "Predicted",
+            "risk_score": 75.0,
+            "risk_level": "HIGH",
+            "predicted_location_id": "LOC-MH-05",
+            "created_at": "2026-09-23T09:35:00+05:30",
+        },
+        {
+            "id": "CP-2026-8953",
+            "ncrp_ref": "NCRP-2026-MHA-77102",
+            "victim_name": "Gajanan Patil",
+            "contact_number": "+91 98500 XXXXX",
+            "complaint_type": "Digital Arrest",
+            "transaction_id": "RTGS-661928401",
+            "transaction_amount": 1650000.0,
+            "transaction_time": "2026-09-23T07:20:00+05:30",
+            "bank": "State Bank of India",
+            "account_info": "SBI - 40291048291",
+            "suspected_account": "Canara Bank - 40291048291",
+            "transaction_location": "Chhatrapati Sambhajinagar, Maharashtra",
+            "state": "Maharashtra",
+            "district": "Chhatrapati Sambhajinagar",
+            "latitude": 19.8762,
+            "longitude": 75.3433,
+            "complaint_description": "Skype video call posing as Mumbai Police Crime Branch demanding RTGS transfer.",
+            "evidence_upload": "skype_call_log.pdf",
+            "status": "Predicted",
+            "risk_score": 84.0,
+            "risk_level": "HIGH",
+            "predicted_location_id": "LOC-MH-06",
+            "created_at": "2026-09-23T07:50:00+05:30",
+        },
+        {
+            "id": "CP-2026-8954",
+            "ncrp_ref": "NCRP-2026-MHA-99018",
+            "victim_name": "Meera Merchant",
+            "contact_number": "+91 98200 XXXXX",
+            "complaint_type": "Fake Investment App",
+            "transaction_id": "RTGS-991827364",
+            "transaction_amount": 3500000.0,
+            "transaction_time": "2026-09-23T06:30:00+05:30",
+            "bank": "Standard Chartered",
+            "account_info": "SCB - 10291048291",
+            "suspected_account": "BOB - 10291048291",
+            "transaction_location": "Mumbai, Maharashtra",
+            "state": "Maharashtra",
+            "district": "Mumbai",
+            "latitude": 18.9256,
+            "longitude": 72.8242,
+            "complaint_description": "Algorithmic crypto trading platform trapped principal deposit.",
+            "evidence_upload": "crypto_escrow.pdf",
+            "status": "Predicted",
+            "risk_score": 88.0,
+            "risk_level": "CRITICAL",
+            "predicted_location_id": "LOC-MH-03",
+            "created_at": "2026-09-23T07:00:00+05:30",
+        }
+    ]
+
+    for c in complaints_data:
+        existing = db.query(Complaint).filter(Complaint.id == c["id"]).first()
+        if not existing:
+            db.add(Complaint(**c))
+
+    # 4. ALERTS (15+ real-time alerts)
+    alerts_data = [
+        {
+            "id": "ALT-9041",
+            "title": "CRITICAL: Predicted ATM Cash Extraction at SBI Main Branch ATM & E-Corner",
+            "type": "Critical Risk Location",
+            "location_id": "LOC-MH-02",
+            "location_name": "SBI Main Branch ATM & E-Corner",
+            "state": "Maharashtra",
+            "district": "Nanded",
+            "risk_score": 96.0,
+            "severity": "CRITICAL",
+            "timestamp": "2026-09-23T09:12:00+05:30",
+            "recipient": "Law Enforcement Agencies",
+            "channel": "SMS + Dashboard",
+            "status": "Delivered",
+            "amount_at_risk": 2200000.0,
+        },
+        {
+            "id": "ALT-9042",
+            "title": "CRITICAL: Imminent Withdrawal at HDFC Bank ATM Kiosk - Shivaji Nagar",
+            "type": "Imminent Withdrawal",
+            "location_id": "LOC-MH-01",
+            "location_name": "HDFC Bank ATM Kiosk - Shivaji Nagar",
+            "state": "Maharashtra",
+            "district": "Pune",
+            "risk_score": 92.0,
+            "severity": "CRITICAL",
+            "timestamp": "2026-09-23T08:40:00+05:30",
+            "recipient": "Joint Taskforce",
+            "channel": "SMS + Dashboard",
+            "status": "Delivered",
+            "amount_at_risk": 1450000.0,
+        },
+        {
+            "id": "ALT-9043",
+            "title": "CRITICAL: High Risk Extraction at ICICI Bank ATM - Indiranagar",
+            "type": "Critical Risk Location",
+            "location_id": "LOC-KA-01",
+            "location_name": "ICICI Bank ATM - Indiranagar 100ft Road",
+            "state": "Karnataka",
+            "district": "Bengaluru Urban",
+            "risk_score": 94.0,
+            "severity": "CRITICAL",
+            "timestamp": "2026-09-23T08:15:00+05:30",
+            "recipient": "Banks / Financial Institutions",
+            "channel": "Email + API",
+            "status": "Delivered",
+            "amount_at_risk": 3200000.0,
+        },
+        {
+            "id": "ALT-9044",
+            "title": "HIGH: Suspicious Mule Network Activity at PNB CSP Kiosk Bharatpur",
+            "type": "Suspicious Mule Network",
+            "location_id": "LOC-RJ-01",
+            "location_name": "PNB Highway CSP Kiosk - Bharatpur",
+            "state": "Rajasthan",
+            "district": "Bharatpur",
+            "risk_score": 95.0,
+            "severity": "CRITICAL",
+            "timestamp": "2026-09-23T09:30:00+05:30",
+            "recipient": "Law Enforcement Agencies",
+            "channel": "SMS + Dashboard",
+            "status": "Delivered",
+            "amount_at_risk": 185000.0,
+        },
+        {
+            "id": "ALT-9045",
+            "title": "CRITICAL: Cross-Jurisdiction Extraction Alert - Connaught Place",
+            "type": "Cross-Jurisdiction Activity",
+            "location_id": "LOC-DL-01",
+            "location_name": "HDFC Bank 24x7 ATM - Connaught Place",
+            "state": "Delhi",
+            "district": "New Delhi",
+            "risk_score": 85.0,
+            "severity": "CRITICAL",
+            "timestamp": "2026-09-23T10:25:00+05:30",
+            "recipient": "I4C",
+            "channel": "Direct Terminal",
+            "status": "Acknowledged",
+            "amount_at_risk": 1800000.0,
+        },
+        {
+            "id": "ALT-9046",
+            "title": "HIGH: SIM Swap Coordinated Extraction at Hitec City Canara Bank",
+            "type": "High Risk ATM",
+            "location_id": "LOC-TS-01",
+            "location_name": "Canara Bank E-Lobby - Hitec City",
+            "state": "Telangana",
+            "district": "Hyderabad",
+            "risk_score": 88.0,
+            "severity": "HIGH",
+            "timestamp": "2026-09-23T06:15:00+05:30",
+            "recipient": "Banks / Financial Institutions",
+            "channel": "NPCI Urgent Webhook",
+            "status": "Action Taken",
+            "amount_at_risk": 890000.0,
+        },
+    ]
+
+    for a in alerts_data:
+        existing = db.query(AlertNotification).filter(AlertNotification.id == a["id"]).first()
+        if not existing:
+            db.add(AlertNotification(**a))
+
+    # 5. INVESTIGATIONS (10+ cases)
+    investigations_data = [
+        {
+            "id": "INV-7731",
+            "complaint_id": "CP-2026-8941",
+            "complaint_title": "Digital Arrest - ₹14.5L",
+            "assigned_officer": "Insp. V. K. Sharma (Cyber Cell)",
+            "police_station": "Pune Cyber Police Station",
+            "location_name": "HDFC Bank ATM Kiosk - Shivaji Nagar",
+            "location_id": "LOC-MH-01",
+            "risk_level": "CRITICAL",
+            "suspected_account": "HDFC Bank - 50100482910482",
+            "suspected_mule_name": "Raju alias Bablu Mewati",
+            "action_taken": "Section 102 CrPC debit freeze enforced. QRT team dispatched to ATM perimeter.",
+            "account_freeze_status": "Frozen (Sec 102 CrPC)",
+            "seizure_status": "Pending",
+            "amount_recovered": 1120000.0,
+            "evidence_list": ["cbi_fake_warrant.pdf", "atm_cctv_frame_1142.jpg", "sec102_lien_notice.pdf"],
+            "notes": [
+                "08:35 AM - National Fusion Grid flagged 92/100 risk score on RTGS tranche.",
+                "08:42 AM - Pinpointed HDFC Shivaji Nagar ATM as target cash-out dispenser.",
+                "09:05 AM - Section 102 CrPC lien placed via HDFC nodal officer; ₹11.2L safeguarded.",
+            ],
+            "status": "Team Dispatched",
+            "created_at": "2026-09-23T08:38:00+05:30",
+            "updated_at": "2026-09-23T09:10:00+05:30",
+        },
+        {
+            "id": "INV-7732",
+            "complaint_id": "CP-2026-8949",
+            "complaint_title": "Digital Arrest Gratuity - ₹22.0L",
+            "assigned_officer": "DySP R. R. Deshmukh",
+            "police_station": "Nanded Cyber Police Station",
+            "location_name": "SBI Main Branch ATM & E-Corner",
+            "location_id": "LOC-MH-02",
+            "risk_level": "CRITICAL",
+            "suspected_account": "Kotak Mahindra - 8819201928",
+            "suspected_mule_name": "Sachin Wankhede",
+            "action_taken": "Runner intercepted at ATM vestibule. 4 cloned debit cards seized.",
+            "account_freeze_status": "Frozen (Sec 102 CrPC)",
+            "seizure_status": "Cash Seized",
+            "amount_recovered": 2200000.0,
+            "evidence_list": ["cloned_cards_seizure_memo.pdf", "accused_phone_dump.json"],
+            "notes": [
+                "09:06 AM - Immediate predictive notification broadcasted to Nanded Cyber Cell.",
+                "09:22 AM - QRT unit stationed near Vazirabad Square intercepted suspect withdrawing first ₹50,000 tranche.",
+            ],
+            "status": "Intervention Completed",
+            "created_at": "2026-09-23T09:08:00+05:30",
+            "updated_at": "2026-09-23T09:40:00+05:30",
+        },
+        {
+            "id": "INV-7733",
+            "complaint_id": "CP-2026-8943",
+            "complaint_title": "Fake IPO App - ₹32.0L",
+            "assigned_officer": "ACP Sandeep Gowda",
+            "police_station": "Bengaluru CID Cyber Division",
+            "location_name": "ICICI Bank ATM - Indiranagar 100ft Road",
+            "location_id": "LOC-KA-01",
+            "risk_level": "CRITICAL",
+            "suspected_account": "Yes Bank - 091827364512",
+            "suspected_mule_name": "Syndicate Account Aggregator",
+            "action_taken": "Lien placed on Yes Bank settlement account.",
+            "account_freeze_status": "Lien Placed",
+            "seizure_status": "Asset Frozen",
+            "amount_recovered": 2650000.0,
+            "evidence_list": ["fake_ipo_apk_analysis.pdf", "mule_layering_graph.png"],
+            "notes": [
+                "08:02 AM - Predictive model scored 94/100 risk based on rapid tranche split.",
+                "08:25 AM - Yes Bank Nodal Officer confirmed immediate debit freeze on ₹26.5 Lakh.",
+            ],
+            "status": "Surveillance Active",
+            "created_at": "2026-09-23T08:05:00+05:30",
+            "updated_at": "2026-09-23T08:45:00+05:30",
+        },
+    ]
+
+    for inv in investigations_data:
+        existing = db.query(InvestigationCase).filter(InvestigationCase.id == inv["id"]).first()
+        if not existing:
+            db.add(InvestigationCase(**inv))
+
+    # 6. OFFICER FEEDBACK RECORDS
+    feedback_data = [
+        {
+            "id": "FB-511",
+            "case_id": "INV-7732",
+            "officer_name": "DySP R. R. Deshmukh",
+            "badge_number": "MH-CY-0842",
+            "outcome": "Cash Withdrawal Prevented",
+            "prediction_accuracy": 5,
+            "risk_score_validated": True,
+            "comments": "Proactive alert received within 15 minutes of victim debit. QRT intercepted runner directly at Vazirabad SBI ATM vestibule.",
+            "additional_evidence": "Confiscated 4 cloned ATM cards and Telegram withdrawal timers.",
+            "timestamp": "2026-09-23T09:45:00+05:30",
+            "used_in_model_training": True,
+        },
+        {
+            "id": "FB-512",
+            "case_id": "INV-7731",
+            "officer_name": "Insp. V. K. Sharma",
+            "badge_number": "MH-CY-1049",
+            "outcome": "Account Frozen",
+            "prediction_accuracy": 5,
+            "risk_score_validated": True,
+            "comments": "High-risk location alert allowed bank nodal team to place Section 102 CrPC lien 22 minutes before suspect reached ATM.",
+            "additional_evidence": "CBS system logs confirmed 2 failed debit card attempts immediately after freeze.",
+            "timestamp": "2026-09-23T09:20:00+05:30",
+            "used_in_model_training": True,
+        },
+        {
+            "id": "FB-513",
+            "case_id": "INV-7733",
+            "officer_name": "ACP Sandeep Gowda",
+            "badge_number": "KA-CID-110",
+            "outcome": "Cash Withdrawal Prevented",
+            "prediction_accuracy": 4,
+            "risk_score_validated": True,
+            "comments": "Withdrawal window was accurately forecasted within 45 minutes. Preserved 82% of victim funds.",
+            "additional_evidence": "Transaction traces matched 3 other NCRP complaints.",
+            "timestamp": "2026-09-23T08:50:00+05:30",
+            "used_in_model_training": False,
+        }
+    ]
+
+    for fb in feedback_data:
+        existing = db.query(OfficerFeedbackRecord).filter(OfficerFeedbackRecord.id == fb["id"]).first()
+        if not existing:
+            db.add(OfficerFeedbackRecord(**fb))
+
+    # 7. BLOCKCHAIN AUDIT BLOCKS (Cryptographically chained with SHA-256)
+    blocks_meta = [
+        ("GENESIS_SYSTEM_INIT", "SYSTEM_ROOT", "SYS-001", "CYBER PEHRA National Multi-Agency Grid initialized. Security root anchored."),
+        ("COMPLAINT_REGISTERED_NCRP", "OFFICER_LEA_PORTAL", "CP-2026-8941", "New Digital Arrest complaint registered. Amount: ₹14,50,000."),
+        ("PREDICTION_ENGINE_RUN", "AI_INFERENCE_ENGINE_V2.4", "CP-2026-8941", "Predicted Cash Extraction at HDFC Bank ATM - Shivaji Nagar. Risk Score: 92/100. Confidence: 91%."),
+        ("SECTION_102_FREEZE_ENFORCED", "BANK_NODAL_OFFICER", "INV-7731", "Account 50100482910482 debit-blocked under Sec 102 CrPC. Preserved ₹11,20,000."),
+        ("QRT_TEAM_DISPATCHED", "OFFICER_LEA", "INV-7731", "Ground intervention team dispatched to intercept cash runner."),
+        ("COMPLAINT_REGISTERED_NCRP", "OFFICER_LEA_PORTAL", "CP-2026-8949", "New Digital Arrest complaint registered. Amount: ₹22,00,000."),
+        ("PREDICTION_ENGINE_RUN", "AI_INFERENCE_ENGINE_V2.4", "CP-2026-8949", "Predicted Cash Extraction at SBI Main Branch ATM Nanded. Risk Score: 96/100. Confidence: 94%."),
+        ("OFFICER_FEEDBACK_RECORDED", "DySP R. R. Deshmukh", "INV-7732", "Ground truth outcome: Cash Withdrawal Prevented. Accuracy rating: 5/5. Training buffer updated."),
+        ("MODEL_WEIGHTS_UPDATED", "CONTINUOUS_LEARNING_PIPELINE", "MODEL-V2.4.1", "Model upgraded to v2.4.1. Precision boosted to 92.4%, Recall 89.1%. Merkle proof anchored."),
+    ]
+
+    prev_hash = GENESIS_HASH
+    for i, (action, officer, case_id, payload) in enumerate(blocks_meta, start=10001):
+        existing = db.query(BlockchainBlock).filter(BlockchainBlock.block_id == i).first()
+        if not existing:
+            ts = datetime.now(timezone.utc).isoformat()
+            cur_hash = calculate_block_hash(i, ts, action, officer, case_id, prev_hash, payload)
+            block = BlockchainBlock(
+                block_id=i,
+                timestamp=ts,
+                action=action,
+                officer=officer,
+                case_id=case_id,
+                hash=cur_hash,
+                previous_hash=prev_hash,
+                status="CONFIRMED",
+                payload_summary=payload,
+            )
+            db.add(block)
+            prev_hash = cur_hash
+        else:
+            prev_hash = existing.hash
+
+    # 8. MODEL METRICS
+    existing_model = db.query(ModelMetrics).filter(ModelMetrics.version == "v2.4.1").first()
+    if not existing_model:
+        model_metric = ModelMetrics(
+            version="v2.4.1",
+            accuracy=92.4,
+            precision=91.8,
+            recall=89.5,
+            f1_score=90.6,
+            false_positive_rate=2.8,
+            predictions_today=48,
+            successful_predictions=312,
+            last_retrained=datetime.now(timezone.utc).isoformat(),
+            training_samples=18540,
+            status="OPTIMAL",
+            is_current=True,
+        )
+        db.add(model_metric)
+
+    # 9. DATA FUSION SOURCES
+    fusion_sources = [
+        {"id": "DFS-01", "name": "National Cybercrime Reporting Portal (NCRP)", "code": "NCRP_1930", "category": "Citizen Grievances & Telemetry", "records_received": 142850, "records_processed": 142850, "last_sync": "Just now", "data_quality": 98.9, "status": "OPTIMAL", "description": "Continuous real-time stream of 1930 helpline and citizen portal complaints."},
+        {"id": "DFS-02", "name": "CFCFRMS / NPCI Fraud Clearing Gateway", "code": "CFCFRMS_NPCI", "category": "Inter-Bank Telemetry", "records_received": 89240, "records_processed": 89120, "last_sync": "2 mins ago", "data_quality": 99.2, "status": "OPTIMAL", "description": "Immediate automated debit freeze alerts and inter-bank transit tracking."},
+        {"id": "DFS-03", "name": "Commercial Banks & NBFC Core Banking (CBS)", "code": "CBS_SWITCH", "category": "Banking Telemetry", "records_received": 312090, "records_processed": 311890, "last_sync": "Just now", "data_quality": 98.4, "status": "OPTIMAL", "description": "Debit and credit velocity feeds from 42 scheduled commercial banks."},
+        {"id": "DFS-04", "name": "National ATM Switch & Switch Terminal Telemetry", "code": "ATM_SWITCH_GRID", "category": "Geospatial Telemetry", "records_received": 52140, "records_processed": 52080, "last_sync": "4 mins ago", "data_quality": 97.8, "status": "OPTIMAL", "description": "Real-time dispenser transaction attempts, balance inquiries and dispenser telemetry."},
+        {"id": "DFS-05", "name": "Bank Branch & CSP Kiosk GIS Registry", "code": "GIS_BRANCH_REG", "category": "Geospatial Registry", "records_received": 128400, "records_processed": 128400, "last_sync": "15 mins ago", "data_quality": 99.5, "status": "OPTIMAL", "description": "Geocoded coordinates of 2.4 Lakh ATMs, branches, and rural customer service kiosks."},
+        {"id": "DFS-06", "name": "Mule Account Intelligence & Layering Registry", "code": "MULE_INTEL_DB", "category": "Intelligence Registry", "records_received": 34180, "records_processed": 34150, "last_sync": "6 mins ago", "data_quality": 97.4, "status": "OPTIMAL", "description": "Known synthetic identities, rented bank accounts, and dormant current account flags."},
+        {"id": "DFS-07", "name": "Geospatial & Police Station Jurisdiction Grid", "code": "SURV_CAM_POLICE", "category": "Law Enforcement Registry", "records_received": 14200, "records_processed": 14200, "last_sync": "12 mins ago", "data_quality": 99.1, "status": "OPTIMAL", "description": "Police jurisdiction geofences, QRT patrol beat positions and CCTV readiness."},
+        {"id": "DFS-08", "name": "Historical Cybercrime Investigation Dossiers", "code": "HIST_CRIME_CORPUS", "category": "Historical Corpus", "records_received": 68400, "records_processed": 68400, "last_sync": "1 hour ago", "data_quality": 96.8, "status": "OPTIMAL", "description": "18-month corpus of resolved cybercrime cash extraction coordinates for training."},
+    ]
+
+    for s in fusion_sources:
+        existing = db.query(DataFusionSource).filter(DataFusionSource.id == s["id"]).first()
+        if not existing:
+            db.add(DataFusionSource(**s))
+
+    # 10. MULE NODES AND EDGES
+    mule_nodes_data = [
+        {"id": "MN-01", "label": "Victim: Rameshwar Joshi", "type": "victim", "bank": "SBI", "account_number": "40291048291", "holder": "Rameshwar K. Joshi", "balance": 15000.0, "risk_score": 10.0, "flag": "Source Victim", "x": 80.0, "y": 200.0},
+        {"id": "MN-02", "label": "Layer 1 Mule: Bablu Mewati", "type": "mule_l1", "bank": "HDFC Bank", "account_number": "50100482910482", "holder": "Bablu Mewati", "balance": 1120000.0, "risk_score": 94.0, "flag": "Sec 102 Frozen", "x": 300.0, "y": 120.0},
+        {"id": "MN-03", "label": "Layer 1 Mule: Sachin Wankhede", "type": "mule_l1", "bank": "Kotak Mahindra", "account_number": "8819201928", "holder": "Sachin Wankhede", "balance": 0.0, "risk_score": 96.0, "flag": "Seized & Arrested", "x": 300.0, "y": 280.0},
+        {"id": "MN-04", "label": "Layer 2 Mule: Rented Rural CSP", "type": "mule_l2", "bank": "Airtel Payments", "account_number": "9821039182", "holder": "CSP Agent Bharatpur", "balance": 45000.0, "risk_score": 91.0, "flag": "Surveillance Active", "x": 520.0, "y": 80.0},
+        {"id": "MN-05", "label": "Shell Entity: Om Logistics Trading", "type": "shell_firm", "bank": "Yes Bank", "account_number": "091827364512", "holder": "Om Logistics Pvt Ltd", "balance": 2650000.0, "risk_score": 89.0, "flag": "Corporate Lien", "x": 520.0, "y": 240.0},
+        {"id": "MN-06", "label": "ATM: SBI Vazirabad Nanded", "type": "atm", "bank": "SBI", "account_number": "ATM-MH-NAN-01", "holder": "State Bank Dispenser", "balance": 1850000.0, "risk_score": 96.0, "flag": "Alert Dispatched", "x": 750.0, "y": 140.0},
+        {"id": "MN-07", "label": "ATM: HDFC Shivaji Nagar Pune", "type": "atm", "bank": "HDFC Bank", "account_number": "ATM-MH-PUN-04", "holder": "HDFC Dispenser", "balance": 2400000.0, "risk_score": 92.0, "flag": "Patrol Deployed", "x": 750.0, "y": 300.0},
+        {"id": "MN-08", "label": "Crypto Conduit: P2P Binance Desk", "type": "crypto_exchange", "bank": "USDT Desk", "account_number": "TRC20-990182", "holder": "Offshore Conduit", "balance": 850000.0, "risk_score": 98.0, "flag": "Wallet Blacklisted", "x": 750.0, "y": 420.0},
+    ]
+
+    for n in mule_nodes_data:
+        existing = db.query(MuleNode).filter(MuleNode.id == n["id"]).first()
+        if not existing:
+            db.add(MuleNode(**n))
+
+    mule_edges_data = [
+        {"id": "ME-01", "source": "MN-01", "target": "MN-02", "amount": 1450000.0, "type": "RTGS Transfer", "timestamp": "2026-09-23T08:15:00+05:30", "hop_level": 1},
+        {"id": "ME-02", "source": "MN-01", "target": "MN-03", "amount": 2200000.0, "type": "RTGS Transfer", "timestamp": "2026-09-23T08:50:00+05:30", "hop_level": 1},
+        {"id": "ME-03", "source": "MN-02", "target": "MN-04", "amount": 185000.0, "type": "UPI Transfer", "timestamp": "2026-09-23T08:24:00+05:30", "hop_level": 2},
+        {"id": "ME-04", "source": "MN-02", "target": "MN-07", "amount": 120000.0, "type": "ATM Cash-Out", "timestamp": "2026-09-23T08:35:00+05:30", "hop_level": 2},
+        {"id": "ME-05", "source": "MN-03", "target": "MN-05", "amount": 1500000.0, "type": "IMPS/NEFT", "timestamp": "2026-09-23T08:58:00+05:30", "hop_level": 2},
+        {"id": "ME-06", "source": "MN-03", "target": "MN-06", "amount": 2200000.0, "type": "ATM Cash-Out", "timestamp": "2026-09-23T09:12:00+05:30", "hop_level": 2},
+        {"id": "ME-07", "source": "MN-05", "target": "MN-08", "amount": 850000.0, "type": "P2P Crypto", "timestamp": "2026-09-23T09:25:00+05:30", "hop_level": 3},
+    ]
+
+    for e in mule_edges_data:
+        existing = db.query(MuleEdge).filter(MuleEdge.id == e["id"]).first()
+        if not existing:
+            db.add(MuleEdge(**e))
+
+    db.commit()
+    print("CYBER PEHRA database seeded successfully with Indian locations and demo records!")
+
+def seed_database_if_empty(db: Session):
+    user_count = db.query(User).count()
+    if user_count == 0:
+        seed_database(db)
+
+if __name__ == "__main__":
+    db = SessionLocal()
+    try:
+        Base.metadata.create_all(bind=engine)
+        seed_database(db)
+    finally:
+        db.close()

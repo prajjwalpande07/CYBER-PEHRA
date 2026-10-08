@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: cyberpehra_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: cyberpehra
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cyberpehra"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: cyberpehra_backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgrespassword@db:5432/cyberpehra
+      SECRET_KEY: cyberpehra_national_cybercrime_coordination_secret_key_2026_super_secure_token
+      CORS_ORIGINS: '["http://localhost:5173", "http://127.0.0.1:5173"]'
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./app/ml/weights:/app/app/ml/weights
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

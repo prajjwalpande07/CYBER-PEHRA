@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy-950: #070b14;
+  --color-navy-900: #0b1329;
+  --color-navy-850: #0f172a;
+  --color-navy-800: #172554;
+  --color-navy-700: #1e3a8a;
+  --color-navy-600: #2563eb;
+  --color-cyber-dark: #080d1a;
+  --color-cyber-card: #0f172a;
+  --color-cyber-cardBorder: #1e293b;
+  --color-cyber-accent: #0284c7;
+  --color-cyber-accentLight: #38bdf8;
+  --color-cyber-success: #10b981;
+  --color-cyber-warning: #f59e0b;
+  --color-cyber-danger: #ef4444;
+  --color-cyber-critical: #b91c1c;
+}
+
+body {
+  background-color: #080d1a;
+  color: #f1f5f9;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b1329;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Leaflet dark theme tweaks */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background-color: #080d1a !important;
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid #1e293b !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7) !important;
+  border-radius: 8px !important;
+}
+
+.leaflet-popup-tip {
+  background: #0f172a !important;
+}
+
+/* Pulse animation for high risk radar */
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.animate-radar {
+  animation: radar-pulse 2s infinite;
+}
