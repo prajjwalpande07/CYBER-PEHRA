@@ -1,3 +1,14 @@
+# 🌐 Live Demo
+
+🚀 **Explore CYBER PEHRA Live**
+
+Experience our AI-powered Predictive Cybercrime Intelligence System through the live demo.
+
+🔗 **[Visit CYBER PEHRA Website]([[https://cyber-pehra.vercel.app/](https://cyber-pehra.vercel.app/)**
+
+> Explore how CYBER PEHRA aims to help identify high-risk locations, analyze potential cybercrime fund withdrawal patterns, and support proactive investigation.
+
+
 # 🛡️ CYBER PEHRA
 
 ### Predictive Cybercrime Intelligence System
